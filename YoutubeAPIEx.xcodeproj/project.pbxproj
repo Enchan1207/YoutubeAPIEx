@@ -15,6 +15,11 @@
 		9E86280426046E300096819C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9E86280226046E300096819C /* LaunchScreen.storyboard */; };
 		9E86280F26046E300096819C /* YoutubeAPIExTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E86280E26046E300096819C /* YoutubeAPIExTests.swift */; };
 		9E86281A26046E300096819C /* YoutubeAPIExUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E86281926046E300096819C /* YoutubeAPIExUITests.swift */; };
+		9E86284426049CAB0096819C /* AuthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E86284326049CAB0096819C /* AuthViewController.swift */; };
+		9E86284926049D250096819C /* AuthScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9E86284826049D250096819C /* AuthScreen.storyboard */; };
+		9E86284E2605E7BE0096819C /* YoutubeKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E86284D2605E7BE0096819C /* YoutubeKit.swift */; };
+		9E862862260762A40096819C /* HTPURLResponseExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E862861260762A40096819C /* HTPURLResponseExt.swift */; };
+		9E862867260781A00096819C /* DefaultCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E862866260781A00096819C /* DefaultCredential.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +54,11 @@
 		9E86281526046E300096819C /* YoutubeAPIExUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YoutubeAPIExUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E86281926046E300096819C /* YoutubeAPIExUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YoutubeAPIExUITests.swift; sourceTree = "<group>"; };
 		9E86281B26046E300096819C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9E86284326049CAB0096819C /* AuthViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewController.swift; sourceTree = "<group>"; };
+		9E86284826049D250096819C /* AuthScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = AuthScreen.storyboard; sourceTree = "<group>"; };
+		9E86284D2605E7BE0096819C /* YoutubeKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YoutubeKit.swift; sourceTree = "<group>"; };
+		9E862861260762A40096819C /* HTPURLResponseExt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTPURLResponseExt.swift; sourceTree = "<group>"; };
+		9E862866260781A00096819C /* DefaultCredential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultCredential.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +112,10 @@
 				9E8627F726046E2E0096819C /* AppDelegate.swift */,
 				9E8627F926046E2E0096819C /* SceneDelegate.swift */,
 				9E8627FB26046E2E0096819C /* ViewController.swift */,
+				9E862866260781A00096819C /* DefaultCredential.swift */,
+				9E86284326049CAB0096819C /* AuthViewController.swift */,
+				9E862861260762A40096819C /* HTPURLResponseExt.swift */,
+				9E8628522605F36B0096819C /* YoutubeKit */,
 				9E8627FD26046E2E0096819C /* Main.storyboard */,
 				9E86280026046E300096819C /* Assets.xcassets */,
 				9E86280226046E300096819C /* LaunchScreen.storyboard */,
@@ -126,6 +140,15 @@
 				9E86281B26046E300096819C /* Info.plist */,
 			);
 			path = YoutubeAPIExUITests;
+			sourceTree = "<group>";
+		};
+		9E8628522605F36B0096819C /* YoutubeKit */ = {
+			isa = PBXGroup;
+			children = (
+				9E86284D2605E7BE0096819C /* YoutubeKit.swift */,
+				9E86284826049D250096819C /* AuthScreen.storyboard */,
+			);
+			path = YoutubeKit;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -233,6 +256,7 @@
 			files = (
 				9E86280426046E300096819C /* LaunchScreen.storyboard in Resources */,
 				9E86280126046E300096819C /* Assets.xcassets in Resources */,
+				9E86284926049D250096819C /* AuthScreen.storyboard in Resources */,
 				9E8627FF26046E2E0096819C /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -258,8 +282,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E86284426049CAB0096819C /* AuthViewController.swift in Sources */,
 				9E8627FC26046E2E0096819C /* ViewController.swift in Sources */,
+				9E86284E2605E7BE0096819C /* YoutubeKit.swift in Sources */,
+				9E862862260762A40096819C /* HTPURLResponseExt.swift in Sources */,
 				9E8627F826046E2E0096819C /* AppDelegate.swift in Sources */,
+				9E862867260781A00096819C /* DefaultCredential.swift in Sources */,
 				9E8627FA26046E2E0096819C /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

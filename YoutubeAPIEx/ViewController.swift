@@ -6,14 +6,27 @@
 //
 
 import UIKit
+import WebKit
+import SafariServices
 
 class ViewController: UIViewController {
-
+    
+    private let youtube = YoutubeKit(apiCredential: YoutubeKit.APICredential(APIKey: DefaultCredential.APIKey, clientID: DefaultCredential.clientID, clientSecret: DefaultCredential.clientSecret), accessCredential: nil)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
     }
+    
+    @IBAction func onTapAuth(_ sender: Any) {
+        // 認証画面を開く
+        let scope: [YoutubeKit.Scope] = [.readwrite, .audit]
+        youtube.authorize(presentViewController: self, scope: scope) { (credential) in
+            print(credential)
+        } failure: { (error) in
+            print(error)
+        }
 
-
+    }
+    
 }
-
