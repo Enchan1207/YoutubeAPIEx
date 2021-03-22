@@ -12,8 +12,8 @@ import WebKit
 class YoutubeKit {
     
     // credentials
-    internal let apiCredential: APICredential
-    internal let accessCredential: AccessCredential?
+    let apiCredential: APICredential
+    var accessCredential: AccessCredential?
     
     /// Generate Instance.
     /// - Parameters:
@@ -34,19 +34,32 @@ class YoutubeKit {
         
         // Storyboardから認証画面を生成
         let storyboard = UIStoryboard(name: "AuthScreen", bundle: nil)
-        guard let authViewController = storyboard.instantiateInitialViewController() as? AuthViewController else{
+        guard let navigationController = storyboard.instantiateInitialViewController(),
+              let authViewController = navigationController.children.first as? AuthViewController else{
             fatalError("Couldn't instantiate authorize view controller.")
         }
         
         // データを渡して
         authViewController.configure(apiCredential: self.apiCredential, scope: scope) { (credential) in
+            self.accessCredential = credential
             success(credential)
         } failure: { (error) in
             failure(error)
         }
         
         // 表示
-        presentViewController.present(authViewController, animated: true, completion: nil)
+        presentViewController.present(navigationController, animated: true, completion: nil)
+    }
+    
+    /// こんな関数欲しいね
+//    func getAuthenticatedUser() -> YoutubeKit.User{
+//
+//    }
+    
+    /// テスト関数 眠い
+    public func getPlayList(part: [String], channelID: String, maxResults: Int? = nil){
+        // あー無理!
+        // URLSession簡単にたたける設計にしてくだしあ 寝る
     }
     
     enum Scope: String, Codable {

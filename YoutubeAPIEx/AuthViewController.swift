@@ -14,25 +14,56 @@ class AuthViewController: UIViewController {
     internal var apiCredential: YoutubeKit.APICredential? = nil
     internal var scope: [YoutubeKit.Scope] = []
     
+    // callback
     internal var successCallback: ((_ credential: YoutubeKit.AccessCredential) -> Void)?
     internal var failureCallback: ((_ error: YoutubeKit.AuthError) -> Void)?
     
+    // consts
     internal let authEndPointString = "https://accounts.google.com/o/oauth2/auth"
     
+    // webview
+    internal var isLoaded: Bool = false
+    internal var estimatedProgressObservationToken: NSKeyValueObservation?
+    internal var navigationGoBackObservationToken: NSKeyValueObservation?
+    internal var navigationGoForwardObservationToken: NSKeyValueObservation?
     @IBOutlet weak var webView: WKWebView!
+    @IBOutlet weak var webProgressBar: UIProgressView!
+    @IBOutlet weak var navigationBackButton: UIBarButtonItem!
+    @IBOutlet weak var navigationForwardButton: UIBarButtonItem!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // webview初期化
         webView.customUserAgent = "Mozilla/5.0 (iPhone; iPhone like Mac OS X) AppleWebKit (KHTML, like Gecko) Safari"
         webView.navigationDelegate = self
+        self.estimatedProgressObservationToken = webView.observe(\.estimatedProgress) { (webView, change) in
+            // プログレスバー更新
+            let progress = webView.estimatedProgress
+            self.webProgressBar.alpha = 1
+            self.webProgressBar.setProgress(Float(progress), animated: true)
+        }
+        
+        self.navigationGoBackObservationToken = webView.observe(\.canGoBack) { (object, change) in
+            self.navigationBackButton.isEnabled = self.webView.canGoBack
+        }
+        
+        self.navigationGoForwardObservationToken = webView.observe(\.canGoForward) { (object, change) in
+            self.navigationBackButton.isEnabled = self.webView.canGoForward
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        guard let authURL = generateAuthURL() else{
-            fatalError("Couldn't generate authorization url from passed credentials!")
+        
+        // 認証URLを生成して読み込み開始
+        if(!self.isLoaded){
+            guard let authURL = generateAuthURL() else{
+                fatalError("Couldn't generate authorization url from passed credentials!")
+            }
+            webView.load(URLRequest(url: authURL))
+            self.isLoaded = true
         }
-        webView.load(URLRequest(url: authURL))
     }
     
     /// Inject credentials from other class.
@@ -49,6 +80,8 @@ class AuthViewController: UIViewController {
         
         self.successCallback = success
         self.failureCallback = failure
+        
+        
     }
     
     /// Make URL of authorization page from passed credentials.
@@ -68,11 +101,35 @@ class AuthViewController: UIViewController {
         components.queryItems = param.map({URLQueryItem(name: $0.key, value: $0.value)})
         return components.url
     }
+    
+    @IBAction func onTapBackButton(_ sender: UIBarButtonItem) {
+        self.webView.goBack()
+    }
+    
+    @IBAction func onTapForwardButton(_ sender: UIBarButtonItem) {
+        self.webView.goForward()
+    }
+    
+    @IBAction func onTapCloseButton(_ sender: Any) {
+        self.dismiss(animated: true, completion: nil)
+    }
+    
 }
 
 extension AuthViewController: WKNavigationDelegate{
     
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        self.title = webView.url?.host
+    }
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        
+        // プログレスバーを消す
+        UIView.animate(withDuration: 0.5) {
+            self.webProgressBar.alpha = 0
+        } completion: { (finished) in
+            self.webProgressBar.setProgress(0, animated: true)
+        }
         
         // (ユーザがアクセスを承認/拒否するとこのURLに飛ぶ)
         guard let destination = self.webView.url,
