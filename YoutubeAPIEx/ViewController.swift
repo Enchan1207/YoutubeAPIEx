@@ -22,7 +22,10 @@ class ViewController: UIViewController {
         // 認証画面を開く
         let scope: [YoutubeKit.Scope] = [.readwrite, .audit]
         youtube.authorize(presentViewController: self, scope: scope) { (credential) in
-            print(credential)
+//            print(credential)
+            print(credential.selialize()!)
+            print(YoutubeKit.AccessCredential.deselialize(object: credential.selialize()!))
+//            self.youtube.getPlayList(part: ["id", "snippet"], channelID: nil)
         } failure: { (error) in
             print(error)
         }

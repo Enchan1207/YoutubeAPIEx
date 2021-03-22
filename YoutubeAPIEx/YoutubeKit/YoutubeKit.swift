@@ -57,9 +57,26 @@ class YoutubeKit {
 //    }
     
     /// テスト関数 眠い
-    public func getPlayList(part: [String], channelID: String, maxResults: Int? = nil){
-        // あー無理!
-        // URLSession簡単にたたける設計にしてくだしあ 寝る
+    public func getPlayList(part: [String], channelID: String?, maxResults: Int? = nil){
+        let baseURL = URL(string: "https://www.googleapis.com/youtube/v3/playlists")!
+        var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)
+        components?.queryItems = [
+            "key": self.apiCredential.APIKey,
+            "part": part.joined(separator: ","),
+            "mine": "true"
+        ].map({URLQueryItem(name: $0.key, value: $0.value)})
+        guard let requestURL = components?.url else {return}
+        
+        var req = URLRequest(url: requestURL)
+        req.httpMethod = "GET"
+        
+        if let token = self.accessCredential?.accessToken{
+            req.setValue( "Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: req) { (data, response, error) in
+            print(String(data: data!, encoding: .utf8))
+        }.resume()
     }
     
     enum Scope: String, Codable {
@@ -89,7 +106,7 @@ extension YoutubeKit {
     }
     
     // ユーザ系
-    struct AccessCredential: Codable{
+    struct AccessCredential: Serializable{        
         var accessToken: String
         var refreshToken: String
         var expires: Date = Date()
