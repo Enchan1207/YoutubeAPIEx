@@ -11,21 +11,22 @@ import WebKit
 class AuthViewController: UIViewController {
     
     // credentials
-    internal var apiCredential: YoutubeKit.APICredential? = nil
-    internal var scope: [YoutubeKit.Scope] = []
+    private var apiCredential: YoutubeKit.APICredential? = nil
+    private var scope: [YoutubeKit.Scope] = []
     
     // callback
-    internal var successCallback: ((_ credential: YoutubeKit.AccessCredential) -> Void)?
-    internal var failureCallback: ((_ error: YoutubeKit.AuthError) -> Void)?
-    
-    // consts
-    internal let authEndPointString = "https://accounts.google.com/o/oauth2/auth"
+    private var successCallback: ((_ credential: YoutubeKit.AccessCredential) -> Void)?
+    private var failureCallback: ((_ error: YoutubeKit.AuthError) -> Void)?
     
     // webview
-    internal var isLoaded: Bool = false
-    internal var estimatedProgressObservationToken: NSKeyValueObservation?
-    internal var navigationGoBackObservationToken: NSKeyValueObservation?
-    internal var navigationGoForwardObservationToken: NSKeyValueObservation?
+    private var isLoaded: Bool = false
+    private var estimatedProgressObservationToken: NSKeyValueObservation?
+    private var navigationGoBackObservationToken: NSKeyValueObservation?
+    private var navigationGoForwardObservationToken: NSKeyValueObservation?
+    private var hostnameObservationToken: NSKeyValueObservation?
+    
+    
+    // ui
     @IBOutlet weak var webView: WKWebView!
     @IBOutlet weak var webProgressBar: UIProgressView!
     @IBOutlet weak var navigationBackButton: UIBarButtonItem!
@@ -38,19 +39,29 @@ class AuthViewController: UIViewController {
         // webview初期化
         webView.customUserAgent = "Mozilla/5.0 (iPhone; iPhone like Mac OS X) AppleWebKit (KHTML, like Gecko) Safari"
         webView.navigationDelegate = self
+        
+        // observer設定
+        
+        // プログレスバー更新
         self.estimatedProgressObservationToken = webView.observe(\.estimatedProgress) { (webView, change) in
-            // プログレスバー更新
             let progress = webView.estimatedProgress
             self.webProgressBar.alpha = 1
             self.webProgressBar.setProgress(Float(progress), animated: true)
         }
         
+        // Can we go back
         self.navigationGoBackObservationToken = webView.observe(\.canGoBack) { (object, change) in
             self.navigationBackButton.isEnabled = self.webView.canGoBack
         }
         
+        // Can we go forward
         self.navigationGoForwardObservationToken = webView.observe(\.canGoForward) { (object, change) in
             self.navigationBackButton.isEnabled = self.webView.canGoForward
+        }
+        
+        // ホスト名
+        self.hostnameObservationToken = webView.observe(\.title) { (object, change) in
+            self.title = self.webView.title
         }
     }
     
@@ -58,10 +69,18 @@ class AuthViewController: UIViewController {
         
         // 認証URLを生成して読み込み開始
         if(!self.isLoaded){
-            guard let authURL = generateAuthURL() else{
-                fatalError("Couldn't generate authorization url from passed credentials!")
-            }
-            webView.load(URLRequest(url: authURL))
+            let config = RequestConfig(
+                url: URL(string: "https://accounts.google.com/o/oauth2/auth")!,
+                method: .GET,
+                queryItems: [
+                    "key": self.apiCredential!.APIKey,
+                    "client_id": self.apiCredential!.clientID,
+                    "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+                    "response_type": "code",
+                    "scope": self.scope.map({$0.rawValue}).joined(separator: " "),
+                    "access_type": "offline"
+                ])
+            webView.load(config.createURLRequest())
             self.isLoaded = true
         }
     }
@@ -80,28 +99,8 @@ class AuthViewController: UIViewController {
         
         self.successCallback = success
         self.failureCallback = failure
-        
-        
     }
-    
-    /// Make URL of authorization page from passed credentials.
-    private func generateAuthURL() -> URL?{
-        
-        guard var components = URLComponents(string: authEndPointString) else {fatalError("Invalid authorization endpoint url")}
-        
-        let param = [
-            "key": self.apiCredential!.APIKey,
-            "client_id": self.apiCredential!.clientID,
-            "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
-            "response_type": "code",
-            "scope": self.scope.map({$0.rawValue}).joined(separator: " "),
-            "access_type": "offline"
-        ]
-        
-        components.queryItems = param.map({URLQueryItem(name: $0.key, value: $0.value)})
-        return components.url
-    }
-    
+
     @IBAction func onTapBackButton(_ sender: UIBarButtonItem) {
         self.webView.goBack()
     }
@@ -118,81 +117,98 @@ class AuthViewController: UIViewController {
 
 extension AuthViewController: WKNavigationDelegate{
     
-    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        self.title = webView.url?.host
-    }
-    
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        
-        // プログレスバーを消す
+    // エラーハンドリング
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        // プログレスバーを左端に戻して
         UIView.animate(withDuration: 0.5) {
             self.webProgressBar.alpha = 0
         } completion: { (finished) in
             self.webProgressBar.setProgress(0, animated: true)
         }
         
-        // (ユーザがアクセスを承認/拒否するとこのURLに飛ぶ)
-        guard let destination = self.webView.url,
-              destination.absoluteString.starts(with: "https://accounts.google.com/o/oauth2/approval/v2")
-        else {return}
+        // alert
+        let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+        let alertActions: [UIAlertAction] = [
+            .init(title: "OK", style: .default, handler: nil)
+        ]
+        alertActions.forEach({alert.addAction($0)})
+        present(alert, animated: true, completion: nil)
+    }
+    
+    // document.onload
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         
-        // FIXME: これ以降のguardにreturn使うのまずくないか?
-        // 画面の変化が一切ないままメインに戻っちゃう
-        
-        // responseパラメータの値を取得
-        let queries = URLComponents(string: destination.absoluteString)!.queryItems
-        let response = queries!.filter({$0.name == "response"}).first!.value!
-        
-        // パース
-        var parameters: [String: String] = [:]
-        _ = response.components(separatedBy: "&")
-            .map({$0.components(separatedBy: "=")})
-            .map ({parameters[$0[0]] = $0[1]})
-        
-        // ユーザが認証そのものを拒否した場合
-        if parameters.index(forKey: "error") != nil {
-            self.failureCallback?(YoutubeKit.AuthError.denied)
-            self.dismiss(animated: true, completion: nil)
-            return
+        // プログレスバーを左端に戻す
+        UIView.animate(withDuration: 0.5) {
+            self.webProgressBar.alpha = 0
+        } completion: { (finished) in
+            self.webProgressBar.setProgress(0, animated: true)
         }
         
-        // アクセストークン生成用コードを取得
-        let code = parameters["code"]!
-        
-        // ユーザが許可したスコープを取得
-        let grantedScopes = parameters["scope"]?
-            .components(separatedBy: "%20")
-            .map({YoutubeKit.Scope(rawValue: $0)})
-            .filter({return $0 != nil})
-            .map({$0!})
-        
-        // アクセストークンを生成
-        // generatetoken <- こいつにrefreshとtokenの違いも吸収させたい
-        
-        guard let tokenBaseURL = URL(string: "https://accounts.google.com/o/oauth2/token"),
-              var tokenURLComponents = URLComponents(url: tokenBaseURL, resolvingAgainstBaseURL: false) else {return}
-        
-        let queryParameters = [
+        // 「認証」または「キャンセル」が押されたとき
+        guard let destination = self.webView.url else {return}
+        if destination.absoluteString.starts(with: "https://accounts.google.com/o/oauth2/approval/v2"){
+            
+            // URLをパースして
+            let queries = URLComponents(string: destination.absoluteString)!.queryItems
+            let response = queries!.filter({$0.name == "response"}).first!.value!
+            var parameters: [String: String] = [:]
+            response.components(separatedBy: "&")
+                .map({$0.components(separatedBy: "=")})
+                .forEach({parameters[$0[0]] = $0[1]})
+            
+            // 拒否した場合は画面を閉じて戻る
+            if parameters.index(forKey: "error") != nil {
+                self.failureCallback?(YoutubeKit.AuthError.denied)
+                self.dismiss(animated: true, completion: nil)
+                return
+            }
+            
+            // アクセストークン生成用コードを取得
+            let code = parameters["code"]!
+            
+            // ユーザが許可したスコープを取得
+            let grantedScopes = parameters["scope"]?
+                .components(separatedBy: "%20")
+                .map({YoutubeKit.Scope(rawValue: $0)})
+                .filter({return $0 != nil})
+                .map({$0!})
+            
+            // 生成!
+            self.generateAccessToken(code: code, scope: grantedScopes ?? []) { (credential, error) in
+                if let error = error {
+                    self.failureCallback?(error)
+                }
+                if let credential = credential {
+                    self.successCallback?(credential)
+                }
+                DispatchQueue.main.async {
+                    self.dismiss(animated: true, completion: nil)
+                }
+            }
+        }
+    }
+    
+    /// generate access token from code.
+    ///  - Parameters:
+    ///     - code: authorization code.
+    ///     - scope: scopes that was granted by user.
+    ///     - completion: completion callback.
+    func generateAccessToken(code: String, scope: [YoutubeKit.Scope], completion: ((_ credential: YoutubeKit.AccessCredential?, _ error: YoutubeKit.AuthError?) -> Void)?){
+        let query = [
             "code": code,
             "client_id": self.apiCredential!.clientID,
             "client_secret": self.apiCredential!.clientSecret,
             "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
             "grant_type": "authorization_code"
         ]
-        let paramItems = queryParameters.map({URLQueryItem(name: $0.key, value: $0.value)})
-        tokenURLComponents.queryItems = paramItems
+        let config = RequestConfig(url: URL(string: "https://accounts.google.com/o/oauth2/token")!,method: .POST,queryItems: query)
         
-        guard let tokenURL = tokenURLComponents.url else {return}
-        
-        var request: URLRequest = URLRequest(url: tokenURL)
-        request.httpMethod = "POST"
-        
-        URLSession.shared.dataTask(with: request) { (data, response, error) in
+        URLSession.shared.dataTask(with: config.createURLRequest()) { (data, response, error) in
             // ここで発生するエラーはユーザの操作により発生することはないので
             // UIfullyなエラー処理は(多分)必要ない (YoutubeKit.AuthErrorで握り潰してよし)
             if error != nil{
-                self.failureCallback?(YoutubeKit.AuthError.unknown)
-                self.dismiss(animated: true, completion: nil)
+                completion?(nil, .unknown)
                 return
             }
             
@@ -204,8 +220,7 @@ extension AuthViewController: WKNavigationDelegate{
             
             // 2XX以外はエラーとみなす
             guard response.typeOfStatusCode() == .Successful else{
-                self.failureCallback?(YoutubeKit.AuthError.invalidCredential)
-                self.dismiss(animated: true, completion: nil)
+                completion?(nil, .invalidCredential)
                 return
             }
             
@@ -218,17 +233,15 @@ extension AuthViewController: WKNavigationDelegate{
                 let token_type: String
             }
             guard let responseBody = try? JSONDecoder().decode(Response.self, from: data) else{
-                self.failureCallback?(YoutubeKit.AuthError.invalidResponse)
-                self.dismiss(animated: true, completion: nil)
+                completion?(nil, .invalidResponse)
                 return
             }
             
             // YoutubeKit.Credentialsのインスタンスをsuccessに載せて返す
-            let credential = YoutubeKit.AccessCredential(accessToken: responseBody.access_token, refreshToken: responseBody.refresh_token, expires: Date().advanced(by: TimeInterval(responseBody.expires_in)), grantedScopes: grantedScopes ?? [])
-            self.successCallback?(credential)
+            let credential = YoutubeKit.AccessCredential(accessToken: responseBody.access_token, refreshToken: responseBody.refresh_token, expires: Date().advanced(by: TimeInterval(responseBody.expires_in)), grantedScopes: scope)
+            completion?(credential, nil)
         }.resume()
-        
-        self.dismiss(animated: true, completion: nil)
     }
+    
 }
 

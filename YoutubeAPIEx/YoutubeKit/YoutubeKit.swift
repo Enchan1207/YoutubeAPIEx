@@ -63,7 +63,8 @@ class YoutubeKit {
         components?.queryItems = [
             "key": self.apiCredential.APIKey,
             "part": part.joined(separator: ","),
-            "mine": "true"
+            "mine": "true",
+            "nextPageToken": "CAUQAA"
         ].map({URLQueryItem(name: $0.key, value: $0.value)})
         guard let requestURL = components?.url else {return}
         
@@ -71,11 +72,12 @@ class YoutubeKit {
         req.httpMethod = "GET"
         
         if let token = self.accessCredential?.accessToken{
-            req.setValue( "Bearer \(token)", forHTTPHeaderField: "Authorization")
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
         URLSession.shared.dataTask(with: req) { (data, response, error) in
-            print(String(data: data!, encoding: .utf8))
+            guard let data = data else {return}
+            print(String(data: data, encoding: .utf8))
         }.resume()
     }
     

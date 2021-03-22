@@ -21,6 +21,7 @@
 		9E862862260762A40096819C /* HTPURLResponseExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E862861260762A40096819C /* HTPURLResponseExt.swift */; };
 		9E862867260781A00096819C /* DefaultCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E862866260781A00096819C /* DefaultCredential.swift */; };
 		9EDB043B26083FFF0080C120 /* SerializeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EDB043A26083FFF0080C120 /* SerializeProtocol.swift */; };
+		9EDB044026085CDF0080C120 /* APIRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EDB043F26085CDF0080C120 /* APIRequest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +62,7 @@
 		9E862861260762A40096819C /* HTPURLResponseExt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTPURLResponseExt.swift; sourceTree = "<group>"; };
 		9E862866260781A00096819C /* DefaultCredential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultCredential.swift; sourceTree = "<group>"; };
 		9EDB043A26083FFF0080C120 /* SerializeProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerializeProtocol.swift; sourceTree = "<group>"; };
+		9EDB043F26085CDF0080C120 /* APIRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIRequest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,7 @@
 				9E8627FB26046E2E0096819C /* ViewController.swift */,
 				9E862866260781A00096819C /* DefaultCredential.swift */,
 				9E86284326049CAB0096819C /* AuthViewController.swift */,
+				9EDB043F26085CDF0080C120 /* APIRequest.swift */,
 				9E862861260762A40096819C /* HTPURLResponseExt.swift */,
 				9EDB043A26083FFF0080C120 /* SerializeProtocol.swift */,
 				9E8628522605F36B0096819C /* YoutubeKit */,
@@ -292,6 +295,7 @@
 				9EDB043B26083FFF0080C120 /* SerializeProtocol.swift in Sources */,
 				9E8627F826046E2E0096819C /* AppDelegate.swift in Sources */,
 				9E862867260781A00096819C /* DefaultCredential.swift in Sources */,
+				9EDB044026085CDF0080C120 /* APIRequest.swift in Sources */,
 				9E8627FA26046E2E0096819C /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
