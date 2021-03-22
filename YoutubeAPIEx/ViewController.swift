@@ -23,8 +23,8 @@ class ViewController: UIViewController {
         let scope: [YoutubeKit.Scope] = [.readwrite, .audit]
         youtube.authorize(presentViewController: self, scope: scope) { (credential) in
 //            print(credential)
-            print(credential.selialize()!)
-            print(YoutubeKit.AccessCredential.deselialize(object: credential.selialize()!))
+            print(credential.serialize()!)
+            print(YoutubeKit.AccessCredential.deserialize(object: credential.serialize()!))
 //            self.youtube.getPlayList(part: ["id", "snippet"], channelID: nil)
         } failure: { (error) in
             print(error)
